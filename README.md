@@ -8,79 +8,63 @@ To write a program to predict the price of the house and number of occupants in 
 2. Anaconda – Python 3.7 Installation / Jupyter notebook
 
 ## Algorithm
-1.Data Preparation: Load the California housing dataset, extract features (first three columns) and targets (target variable and sixth column), and split the data into training and testing sets.
-2.Data Scaling: Standardize the feature and target data using StandardScaler to enhance model performance.
-3.Model Training: Create a multi-output regression model with SGDRegressor and fit it to the training data.
-4.Prediction and Evaluation: Predict values for the test set using the trained model, calculate the mean squared error, and print the predictions along with the squared error.
+1. Load California housing data, select features and targets, and split into training and testing sets.
+2. Scale both X (features) and Y (targets) using StandardScaler. 
+3. Use SGDRegressor wrapped in MultiOutputRegressor to train on the scaled training data. 
+4. Predict on test data, inverse transform the results, and calculate the mean squared error.
 
 ## Program:
 ```
 /*
 Program to implement the multivariate linear regression model for predicting the price of the house and number of occupants in the house with SGD regressor.
-Developed by:MaheshBabu V 
-RegisterNumber:212225230166
+Developed by: MAHESHBABU V
+RegisterNumber: 212225230166
+
 import numpy as np
+import pandas as pd
+from sklearn.datasets import fetch_california_housing
+from sklearn.linear_model import SGDRegressor
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import StandardScaler
 
-# ------------------------------
-# Step 1: Sample dataset
-# ------------------------------
-# Features: [Hours Studied, Attendance, Previous Marks]
-X = np.array([
-    [2, 80, 50],
-    [3, 60, 40],
-    [5, 90, 70],
-    [7, 85, 80],
-    [9, 95, 90]
-], dtype=float)
+data=fetch_california_housing()
 
-# Target: Marks Scored
-y = np.array([50, 45, 70, 80, 95], dtype=float)
+X=data.data[:,:3]
+Y=np.column_stack((data.target,data.data[:,6]))
 
-# ------------------------------
-# Step 2: Feature normalization
-# ------------------------------
-X_mean = X.mean(axis=0)
-X_std = X.std(axis=0)
-X = (X - X_mean) / X_std
+X_train,X_test,Y_train,Y_test=train_test_split(X,Y,test_size=0.2,random_state=42)
 
-# Add bias term (intercept)
-X = np.c_[np.ones(X.shape[0]), X]  # shape becomes (n_samples, n_features + 1)
+scaler_X=StandardScaler()
+scaler_Y=StandardScaler()
 
-# ------------------------------
-# Step 3: Initialize weights
-# ------------------------------
-n_features = X.shape[1]
-weights = np.zeros(n_features)
+X_train =scaler_X.fit_transform(X_train)
+X_test=scaler_X.transform(X_test)
 
-# Hyperparameters
-learning_rate = 0.01
-epochs = 1000
+Y_train=scaler_Y.fit_transform(Y_train)
+Y_test=scaler_Y.transform(Y_test)
 
-# ------------------------------
-# Step 4: Stochastic Gradient Descent
-# ------------------------------
-for epoch in range(epochs):
-    for i in range(X.shape[0]):
-        xi = X[i]
-        yi = y[i]
-        y_pred = np.dot(xi, weights)
-        error = y_pred - yi
-        # Update weights
-        weights -= learning_rate * error * xi
+sgd=SGDRegressor(max_iter=1000, tol=1e-3)
 
-print("Trained Weights (including intercept):", weights)
+multi_output_sgd=MultiOutputRegressor(sgd)
+multi_output_sgd.fit(X_train,Y_train)
 
-# ------------------------------
-# Step 5: Make predictions
-# ------------------------------
-y_pred_all = np.dot(X, weights)
-print("Predicted values:", y_pred_all)
- 
+Y_pred=multi_output_sgd.predict(X_test)
+Y_pred=scaler_Y.inverse_transform(Y_pred)
+Y_test=scaler_Y.inverse_transform(Y_test)
+
+mse=mean_squared_error(Y_test,Y_pred)
+
+print("Mean Square Error:",mse)
+print("\nPredictions:\n",Y_pred[:5])
+
 */
 ```
 
 ## Output:
 
+<img width="420" height="202" alt="image" src="https://github.com/user-attachments/assets/a98cc719-a024-41f9-977f-86429edc9e14" />
 
 
 ## Result:
